@@ -18,10 +18,32 @@ Technik: Python 3.11+, FastAPI, Jinja2 + HTMX, SQLite. Kein Node, kein Docker, k
 Voraussetzung: HAProxy ist installiert (`apt install haproxy`) und läuft.
 
 ```bash
-git clone https://github.com/<konto>/haproxy-ui.git
+git clone https://github.com/nwebsta/haproxy.git haproxy-ui
 cd haproxy-ui
 sudo ./install.sh
 ```
+
+Ohne Optionen fragt das Skript bei der Erstinstallation nach Adresse, Port und HTTPS.
+Alles lässt sich auch direkt angeben:
+
+| Option | Bedeutung |
+| --- | --- |
+| `--listen ADRESSE` | Adresse der Oberfläche: `127.0.0.1` (Voreinstellung, nur lokal), eine bestimmte IP des Servers oder `0.0.0.0` für alle |
+| `--port PORT` | Port der Oberfläche (Voreinstellung `8765`) |
+| `--tls self-signed` | HTTPS mit selbst erzeugtem Zertifikat (`/etc/haproxy-ui/tls/`, 825 Tage gültig, wird bei Updates weiterverwendet) |
+| `--tls-cert DATEI --tls-key DATEI` | HTTPS mit vorhandenem Zertifikat, z. B. von Let's Encrypt; der Benutzer `haproxy-ui` muss beide Dateien lesen können |
+| `--tls none` | unverschlüsselt – nur sinnvoll mit `127.0.0.1` und SSH-Tunnel |
+| `--yes` | keine Rückfragen (Voreinstellungen) |
+
+Beispiel: Oberfläche auf der internen IP, Port 9443, mit eigenem Zertifikat:
+
+```bash
+sudo ./install.sh --listen 10.0.0.5 --port 9443 --tls self-signed
+```
+
+Bei `self-signed` gibt das Skript den SHA-256-Fingerabdruck aus. Der Browser warnt beim ersten
+Aufruf; vergleiche den Fingerabdruck und lass die Ausnahme dann zu. Bei einem Update ändert das
+Skript Adresse, Port und HTTPS nur, wenn die Option ausdrücklich angegeben ist.
 
 `install.sh` erledigt:
 
@@ -53,22 +75,45 @@ zu deaktivierten Diensten. Domainlisten werden aus dem Verzeichnis der cfg geles
 
 ### Zugriff
 
-Die Oberfläche lauscht nur auf `127.0.0.1:8765`. Zugriff per SSH-Tunnel:
+In der Voreinstellung lauscht die Oberfläche nur auf `127.0.0.1:8765`. Zugriff per SSH-Tunnel:
 
 ```bash
 ssh -L 8765:127.0.0.1:8765 root@haproxy-host
 # dann im Browser: http://127.0.0.1:8765/
 ```
 
+Lauscht sie auf einer anderen Adresse, dann nur mit HTTPS und möglichst nur aus dem internen
+Netz bzw. per Firewall auf die eigene Admin-IP beschränkt. Ohne HTTPS gehen Passwort und
+Sitzung im Klartext übers Netz; das Skript warnt in diesem Fall.
+
+Adresse, Port und Zertifikat stehen in `/etc/haproxy-ui/config.toml`
+(`listen_host`, `listen_port`, `tls_cert`, `tls_key`); nach einer Änderung
+`sudo systemctl restart haproxy-ui`.
+
 Die Oberfläche **nie** über den verwalteten HAProxy veröffentlichen.
 
 ### Update
+
+Entweder im vorhandenen Klon:
 
 ```bash
 cd haproxy-ui
 git pull
 sudo ./install.sh
 ```
+
+oder mit einem frischen Klon – der alte Klon wird nicht gebraucht und kann gelöscht werden:
+
+```bash
+git clone https://github.com/nwebsta/haproxy.git /tmp/haproxy-ui
+sudo /tmp/haproxy-ui/install.sh
+rm -rf /tmp/haproxy-ui
+```
+
+Beides ist gleichwertig: `install.sh` kopiert das Programm aus dem Verzeichnis, in dem es liegt,
+nach `/opt/haproxy-ui/`. Datenbank (`/var/lib/haproxy-ui/`), Konfiguration
+(`/etc/haproxy-ui/`) und Zertifikat liegen außerhalb des Klons und bleiben erhalten. Das Skript
+erkennt ein Update daran, dass `/opt/haproxy-ui/venv` schon existiert, und fragt dann nichts ab.
 
 Beim Update hält das Skript den Dienst an, sichert die Datenbank nach
 `/var/lib/haproxy-ui/db-backup/` (die letzten 10 bleiben), ersetzt die Programmdateien,

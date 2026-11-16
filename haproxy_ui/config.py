@@ -33,9 +33,16 @@ class AppConfig:
     session_hours: int = 8
     max_failed_logins: int = 5
     lockout_minutes: int = 15
+    # HTTPS für die Oberfläche selbst. Beide gesetzt -> HTTPS, sonst HTTP.
+    tls_cert: Path | None = None
+    tls_key: Path | None = None
+
+    @property
+    def tls_enabled(self) -> bool:
+        return self.tls_cert is not None and self.tls_key is not None
 
 
-_PATH_FIELDS = {"database", "haproxy_cfg", "lists_dir", "backup_dir"}
+_PATH_FIELDS = {"database", "haproxy_cfg", "lists_dir", "backup_dir", "tls_cert", "tls_key"}
 
 
 def load_config(path: str | os.PathLike | None = None) -> AppConfig:
@@ -59,4 +66,8 @@ def load_config(path: str | os.PathLike | None = None) -> AppConfig:
             if not (isinstance(value, list) and value and all(isinstance(v, str) for v in value)):
                 raise ValueError(f"{key} muss eine Liste von Zeichenketten sein")
         setattr(cfg, key, value)
+    if (cfg.tls_cert is None) != (cfg.tls_key is None):
+        raise ValueError(f"{p}: tls_cert und tls_key nur gemeinsam angeben")
+    if cfg.tls_enabled:
+        cfg.cookie_secure = True  # über HTTPS nur sichere Cookies
     return cfg

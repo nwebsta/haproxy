@@ -79,10 +79,14 @@ def cmd_serve(config, args) -> int:
 
     from .web import create_app
 
+    tls = {}
+    if config.tls_enabled:
+        tls = {"ssl_certfile": str(config.tls_cert), "ssl_keyfile": str(config.tls_key)}
     uvicorn.run(
         create_app(config),
         host=config.listen_host,
         port=config.listen_port,
+        **tls,
         workers=1,
         proxy_headers=False,
         server_header=False,

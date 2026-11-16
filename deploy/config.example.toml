@@ -16,7 +16,12 @@ haproxy_bin = "/usr/sbin/haproxy"
 reload_cmd    = ["/usr/bin/sudo", "-n", "/usr/bin/systemctl", "reload", "haproxy"]
 is_active_cmd = ["/usr/bin/systemctl", "is-active", "haproxy"]
 
-# Nur auf true setzen, wenn die Oberfläche über HTTPS erreicht wird.
+# HTTPS für die Oberfläche: beide Pfade setzen (PEM). Dann gilt cookie_secure automatisch.
+# install.sh --tls self-signed erzeugt ein eigenes Zertifikat unter /etc/haproxy-ui/tls/.
+# tls_cert = "/etc/haproxy-ui/tls/cert.pem"
+# tls_key  = "/etc/haproxy-ui/tls/key.pem"
+
+# Nur nötig, wenn ein vorgeschalteter Proxy HTTPS macht.
 cookie_secure = false
 session_hours = 8
 
