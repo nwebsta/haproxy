@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field with context %}
+{% block title %}haproxy.cfg{% endblock %}
+{% block content %}
+<div class="page-head"><h1>haproxy.cfg ansehen</h1></div>
+<p class="muted">So sieht die Datei aus, wenn der aktuelle Stand angewendet wird. Nur lesbar.</p>
+{% if render_error %}
+<div class="alert alert-error" role="alert">Die Datei kann nicht erzeugt werden: {{ render_error }}</div>
+{% else %}
+<pre class="code-block">{{ cfg_text }}</pre>
+{% endif %}
+
+<section class="card">
+  <h2>Eingang und Kopfbereich</h2>
+  <form method="post" action="/config">
+    {{ csrf_field() }}
+    <label for="c-bind">Eingangsadresse (bind für Port 80 und 443)</label>
+    <input id="c-bind" name="bind_ip" class="mono" value="{{ v.bind_ip }}" required>
+    {{ field_error(errors, "bind_ip") }}
+    <label for="c-head">Kopfbereich (<span class="mono">global</span> und <span class="mono">defaults</span>)</label>
+    <textarea id="c-head" name="head" rows="24" class="mono code-input" spellcheck="false" wrap="off">{{ v.head }}</textarea>
+    <p class="hint">Freitext. Wird unverändert übernommen und nur durch <span class="mono">haproxy -c</span> geprüft.</p>
+    {{ field_error(errors, "head") }}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Speichern</button></div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field with context %}
+{% block title %}Fassung #{{ ver.id }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Fassung #{{ ver.id }}</h1>
+  <a href="/history">Zurück zum Verlauf</a>
+</div>
+<p><span class="mono">{{ ver.created_at|localtime }}</span> – {{ ver.description }}</p>
+<form method="post" action="/history/{{ ver.id }}/restore" data-confirm="Fassung #{{ ver.id }} wiederherstellen und sofort anwenden?">
+  {{ csrf_field() }}
+  <button type="submit" class="btn">Wiederherstellen</button>
+  <span class="hint">Setzt die Datenbank auf diesen Stand und wendet ihn mit allen Prüfungen an.</span>
+</form>
+<h2>haproxy.cfg</h2>
+<pre class="code-block">{{ ver.cfg_text }}</pre>
+{% for name, text in lists.items() %}
+<h2>Domainliste <span class="mono">{{ name }}</span></h2>
+<pre class="code-block">{{ text or "(leer)" }}</pre>
+{% endfor %}
+{% endblock %}

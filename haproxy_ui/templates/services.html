@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Dienste{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Dienste</h1>
+  <a class="btn btn-primary" href="/services/new">Dienst hinzufügen</a>
+</div>
+{% include "_services_table.html" %}
+<p class="muted legend">PROXY-Protokoll:
+  {% from "_macros.html" import proxy_badge with context %}
+  {{ proxy_badge("off") }} kein Kopf · {{ proxy_badge("v1") }} send-proxy · {{ proxy_badge("v2") }} send-proxy-v2
+</p>
+{% endblock %}

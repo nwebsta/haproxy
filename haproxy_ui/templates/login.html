@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anmelden · haproxy-ui</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="login-body">
+<main class="login">
+  <h1>haproxy-ui</h1>
+  <p class="muted">Bitte anmelden.</p>
+  {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+  <form method="post" action="/login" class="card">
+    <input type="hidden" name="csrf_token" value="{{ login_csrf }}">
+    <label>Benutzername
+      <input name="username" autocomplete="username" required autofocus>
+    </label>
+    <label>Passwort
+      <input name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <button class="btn btn-primary" type="submit">Anmelden</button>
+  </form>
+</main>
+</body>
+</html>

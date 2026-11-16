@@ -1,0 +1,1 @@
+<a id="review-button" href="/review" class="btn {{ 'btn-primary' if pending else '' }}"{% if oob %} hx-swap-oob="true"{% endif %}>Änderungen prüfen{% if pending %} <span class="pending-dot" title="Es gibt nicht angewendete Änderungen">●<span class="sr-only"> (offen)</span></span>{% endif %}</a>

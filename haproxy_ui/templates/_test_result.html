@@ -1,0 +1,13 @@
+<p class="test-target">Getestet: <span class="mono">{{ r.ip }}:{{ r.port }}</span>, Domain <span class="mono">{{ r.domain }}</span></p>
+<ul class="attempts">
+  {% for a in r.attempts %}
+  <li class="{{ 'ok' if a.ok else 'fail' }}">
+    <span class="mark" aria-hidden="true">{{ '✓' if a.ok else '✗' }}</span>
+    <span class="sr-only">{{ 'erfolgreich' if a.ok else 'fehlgeschlagen' }}:</span>
+    <strong>{{ a.label }}</strong>{% if a.mode == r.configured %} <span class="tag">gewählt</span>{% endif %}
+    <span class="detail">{{ a.detail }}</span>
+  </li>
+  {% endfor %}
+</ul>
+<p class="verdict {{ 'ok' if r.matches else ('warn' if r.matches is none else 'fail') }}">{{ r.verdict }}</p>
+<p class="hint">Getestet wird der gespeicherte Stand. Der Test ändert keine Einstellung.</p>

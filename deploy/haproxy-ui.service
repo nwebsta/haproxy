@@ -1,0 +1,23 @@
+[Unit]
+Description=haproxy-ui – Weboberfläche für HAProxy
+After=network.target haproxy.service
+
+[Service]
+Type=simple
+User=haproxy-ui
+Group=haproxy-ui
+Environment=HAPROXY_UI_CONFIG=/etc/haproxy-ui/config.toml
+ExecStart=/opt/haproxy-ui/venv/bin/haproxy-ui serve
+Restart=on-failure
+RestartSec=3
+UMask=0022
+# Härtung, soweit sie sudo (für "systemctl reload haproxy") nicht behindert
+PrivateTmp=true
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

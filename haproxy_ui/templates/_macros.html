@@ -1,0 +1,11 @@
+{% macro proxy_badge(mode) -%}
+<span class="px px-{{ mode }}" title="PROXY-Protokoll: {{ PROXY_LABELS[mode] }}"><span class="sr-only">PROXY </span>{{ PROXY_LABELS[mode] }}</span>
+{%- endmacro %}
+
+{% macro field_error(errors, name) -%}
+{% if errors.get(name) %}<p class="field-error" role="alert">{{ errors[name] }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro csrf_field() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf }}">
+{%- endmacro %}

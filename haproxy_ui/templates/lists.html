@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field with context %}
+{% block title %}Domainlisten{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Domainlisten</h1></div>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Name</th><th>Datei</th><th>Domains</th><th>Benutzt von</th><th></th></tr></thead>
+  <tbody>
+  {% for l in lists %}
+    <tr>
+      <td class="mono">{{ l.name }}</td>
+      <td class="mono muted">{{ request.app.state.config.lists_dir }}/{{ l.name }}</td>
+      <td>{{ l.domain_items|length }}</td>
+      <td>{% for s in l.services %}<a class="mono" href="/services/{{ s.id }}">{{ s.name }}</a>{% if not s.enabled %} <span class="muted">(deaktiviert)</span>{% endif %}{% if not loop.last %}, {% endif %}{% else %}<span class="muted">–</span>{% endfor %}</td>
+      <td><a href="/lists/{{ l.id }}">Bearbeiten</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="muted">Noch keine Domainlisten.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<section class="card narrow">
+  <h2>Neue Liste</h2>
+  <form method="post" action="/lists">
+    {{ csrf_field() }}
+    <label for="l-name">Name (wird zum Dateinamen unter /etc/haproxy/)</label>
+    <input id="l-name" name="name" class="mono" value="{{ v.name }}" required pattern="[a-z0-9][a-z0-9_\-]{0,63}">
+    {{ field_error(errors, "name") }}
+    <label for="l-domains">Domains, eine pro Zeile</label>
+    <textarea id="l-domains" name="domains" rows="6" class="mono" spellcheck="false">{{ v.domains }}</textarea>
+    {{ field_error(errors, "domains") }}
+    <button class="btn btn-primary" type="submit">Liste anlegen</button>
+  </form>
+</section>
+{% endblock %}

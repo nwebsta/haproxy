@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "selfRequestsOnly": true}'>
+<title>{% block title %}HAProxy{% endblock %} · haproxy-ui</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/htmx.min.js" defer></script>
+<script src="/static/app.js" defer></script>
+</head>
+<body hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
+<header class="topbar">
+  <a class="brand" href="/services">haproxy-ui</a>
+  <nav class="mainnav" aria-label="Hauptnavigation">
+    <a href="/services" {% if nav == 'services' %}aria-current="page"{% endif %}>Dienste</a>
+    <a href="/lists" {% if nav == 'lists' %}aria-current="page"{% endif %}>Domainlisten</a>
+    <a href="/history" {% if nav == 'history' %}aria-current="page"{% endif %}>Änderungsverlauf</a>
+    <a href="/config" {% if nav == 'config' %}aria-current="page"{% endif %}>haproxy.cfg ansehen</a>
+  </nav>
+  <div class="topbar-actions">
+    {% include "_pending_badge.html" %}
+    <form method="post" action="/logout">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button class="btn btn-quiet" type="submit">Abmelden</button>
+    </form>
+  </div>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

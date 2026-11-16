@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------------
+# Diese Datei wird von haproxy-ui erzeugt.
+# Handänderungen gehen beim nächsten Anwenden verloren.
+# ---------------------------------------------------------------------------
+
+{{ head }}
+
+frontend http_in
+    mode http
+    option httplog
+    option forwardfor
+    bind {{ bind_ip }}:80
+{% if services %}
+
+{% for s in services %}
+    acl {{ s.acl }} hdr(host) {{ s.acl_values }}
+{% endfor %}
+{% endif %}
+{% if redirects %}
+
+{% for s in redirects %}
+    http-request redirect scheme https if {{ s.acl }}
+{% endfor %}
+{% endif %}
+{% if services %}
+
+{% for s in services %}
+    use_backend {{ s.name }} if {{ s.acl }}
+{% endfor %}
+{% endif %}
+{% for s in services %}
+
+backend {{ s.name }}
+    mode http
+    {{ s.http_server }}
+{% endfor %}
+
+frontend https_in
+    mode tcp
+    option tcplog
+    bind {{ bind_ip }}:443
+    acl tls req.ssl_hello_type 1
+    tcp-request inspect-delay 5s
+    tcp-request content accept if tls
+{% if services %}
+
+{% for s in services %}
+    acl {{ s.acl }} req.ssl_sni {{ s.acl_values }}
+{% endfor %}
+
+{% for s in services %}
+    use_backend {{ s.name }}_SSL if {{ s.acl }}
+{% endfor %}
+{% endif %}
+{% for s in services %}
+
+backend {{ s.name }}_SSL
+    mode tcp
+{% if s.health_check %}
+    option ssl-hello-chk
+{% endif %}
+    {{ s.https_server }}
+{% endfor %}

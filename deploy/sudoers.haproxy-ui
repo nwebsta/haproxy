@@ -1,0 +1,3 @@
+# /etc/sudoers.d/haproxy-ui
+# Erlaubt dem Dienstbenutzer genau einen Befehl: HAProxy neu laden (kein Restart).
+haproxy-ui ALL=(root) NOPASSWD: /usr/bin/systemctl reload haproxy

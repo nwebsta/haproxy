@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field with context %}
+{% block title %}Liste {{ lst.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Domainliste <span class="mono">{{ lst.name }}</span></h1>
+  <a href="/lists">Zurück zu den Listen</a>
+</div>
+{% if errors._form %}<div class="alert alert-error" role="alert">{{ errors._form }}</div>{% endif %}
+
+<section class="card narrow">
+  <p>Datei: <span class="mono">{{ request.app.state.config.lists_dir }}/{{ lst.name }}</span></p>
+  <p>Benutzt von:
+    {% for s in lst.services %}<a class="mono" href="/services/{{ s.id }}">{{ s.name }}</a>{% if not s.enabled %} <span class="muted">(deaktiviert)</span>{% endif %}{% if not loop.last %}, {% endif %}{% else %}<span class="muted">keinem Dienst</span>{% endfor %}
+  </p>
+  <form method="post">
+    {{ csrf_field() }}
+    <label for="l-domains">Domains, eine pro Zeile</label>
+    <textarea id="l-domains" name="domains" rows="12" class="mono" spellcheck="false">{{ domains }}</textarea>
+    {{ field_error(errors, "domains") }}
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Speichern</button>
+      <a href="/lists">Abbrechen</a>
+    </div>
+  </form>
+</section>
+
+{% if not lst.services %}
+<form method="post" action="/lists/{{ lst.id }}/delete" class="danger-zone"
+      data-confirm="Liste {{ lst.name }} wirklich löschen?">
+  {{ csrf_field() }}
+  <button type="submit" class="btn btn-danger">Liste löschen</button>
+  <span class="hint">Die Datei unter /etc/haproxy/ bleibt liegen, wird aber nicht mehr benutzt.</span>
+</form>
+{% endif %}
+{% endblock %}

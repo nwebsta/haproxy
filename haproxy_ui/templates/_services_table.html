@@ -1,0 +1,50 @@
+{% from "_macros.html" import proxy_badge with context %}
+{% macro row(s) %}
+<tr class="{{ '' if s.enabled else 'is-disabled' }}">
+  <td>
+    <a class="svc-name mono" href="/services/{{ s.id }}">{{ s.name }}</a>
+    <div class="domains">
+    {% if s.domain_list %}
+      Liste <a class="mono" href="/lists/{{ s.domain_list.id }}">{{ s.domain_list.name }}</a>
+      <span class="muted">({{ s.domain_list.domain_items|length }} Domains)</span>
+    {% else %}
+      {% for d in s.domain_items %}<span class="mono">{{ d }}</span>{% if not loop.last %}<br>{% endif %}{% endfor %}
+    {% endif %}
+    </div>
+  </td>
+  <td class="mono">{{ s.target_ip }}</td>
+  <td><span class="mono">{{ s.http_port }}</span> {{ proxy_badge(s.http_proxy) }}
+    {% if s.redirect_to_https %}<span class="tag" title="HTTP wird auf HTTPS umgeleitet">→ HTTPS</span>{% endif %}</td>
+  <td><span class="mono">{{ s.https_port }}</span> {{ proxy_badge(s.https_proxy) }}
+    {% if s.health_check %}<span class="tag" title="Erreichbarkeit wird laufend geprüft">Check</span>{% endif %}</td>
+  <td>
+    <form method="post" action="/services/{{ s.id }}/toggle"
+          hx-post="/services/{{ s.id }}/toggle" hx-target="#service-table" hx-swap="outerHTML">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button type="submit" class="switch {{ 'on' if s.enabled else 'off' }}" role="switch"
+              aria-checked="{{ 'true' if s.enabled else 'false' }}" aria-label="{{ s.name }} aktiv">
+        <span class="switch-knob" aria-hidden="true"></span>{{ 'aktiv' if s.enabled else 'deaktiviert' }}
+      </button>
+    </form>
+  </td>
+  <td><a href="/services/{{ s.id }}">Bearbeiten</a></td>
+</tr>
+{% endmacro %}
+<div id="service-table" class="table-wrap">
+<table class="services">
+  <thead>
+    <tr><th>Name / Domains</th><th>Ziel-IP</th><th>HTTP</th><th>HTTPS</th><th>Zustand</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for s in active %}{{ row(s) }}{% endfor %}
+    {% if not active %}<tr><td colspan="6" class="muted">Keine aktiven Dienste.</td></tr>{% endif %}
+  </tbody>
+  {% if inactive %}
+  <tbody class="disabled-group">
+    <tr class="group-head"><th colspan="6">Deaktiviert ({{ inactive|length }})</th></tr>
+    {% for s in inactive %}{{ row(s) }}{% endfor %}
+  </tbody>
+  {% endif %}
+</table>
+</div>
+{% if oob %}{% include "_pending_badge.html" %}{% endif %}

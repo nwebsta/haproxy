@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_error, csrf_field with context %}
+{% block title %}{{ service.name if service else "Neuer Dienst" }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{% if service %}Dienst <span class="mono">{{ service.name }}</span>{% else %}Dienst hinzufügen{% endif %}</h1>
+  <a href="/services">Zurück zur Übersicht</a>
+</div>
+
+{% if errors %}<div class="alert alert-error" role="alert">Bitte die markierten Felder korrigieren.{% if errors._form %} {{ errors._form }}{% endif %}</div>{% endif %}
+
+<form method="post" class="service-form" data-domain-mode>
+  {{ csrf_field() }}
+  <section class="card">
+    <div class="grid-2">
+      <div>
+        <label for="f-name">Name</label>
+        <input id="f-name" name="name" class="mono" value="{{ v.name }}" required autocomplete="off"
+               pattern="[a-z0-9_]{1,64}" title="nur a–z, 0–9 und _">
+        <p class="hint">Ergibt die Backend-Namen <span class="mono">{{ v.name or "name" }}</span> und <span class="mono">{{ v.name or "name" }}_SSL</span>.</p>
+        {{ field_error(errors, "name") }}
+      </div>
+      <div>
+        <label for="f-ip">Ziel-IP</label>
+        <input id="f-ip" name="target_ip" class="mono" value="{{ v.target_ip }}" required inputmode="decimal"
+               autocomplete="off" placeholder="10.0.0.10">
+        {{ field_error(errors, "target_ip") }}
+      </div>
+    </div>
+
+    <fieldset class="domain-mode">
+      <legend>Domains</legend>
+      <div class="choice-row">
+        <label class="inline"><input type="radio" name="domain_mode" value="direct" {% if v.domain_mode != 'list' %}checked{% endif %}> Domains direkt angeben</label>
+        <label class="inline"><input type="radio" name="domain_mode" value="list" {% if v.domain_mode == 'list' %}checked{% endif %}> Domainliste verwenden</label>
+      </div>
+      <div data-mode="direct">
+        <textarea name="domains" rows="3" class="mono" aria-label="Domains, eine pro Zeile" spellcheck="false">{{ v.domains }}</textarea>
+        <p class="hint">Eine Domain pro Zeile.</p>
+        {{ field_error(errors, "domains") }}
+      </div>
+      <div data-mode="list">
+        {% if lists %}
+        <select name="domain_list" aria-label="Domainliste">
+          {% for l in lists %}
+          <option value="{{ l.name }}" {% if v.domain_list == l.name %}selected{% endif %}>{{ l.name }} ({{ l.domain_items|length }} Domains)</option>
+          {% endfor %}
+        </select>
+        {% else %}
+        <p class="muted">Noch keine Domainlisten vorhanden. <a href="/lists">Liste anlegen</a></p>
+        {% endif %}
+        {{ field_error(errors, "domain_list") }}
+      </div>
+    </fieldset>
+
+    <label class="inline"><input type="checkbox" name="enabled" {% if v.enabled %}checked{% endif %}> Dienst aktiv</label>
+  </section>
+
+  <div class="alert alert-info proxy-note">
+    <strong>PROXY-Protokoll:</strong> HAProxy und das Ziel müssen gleich eingestellt sein – pro Seite.
+    Sendet HAProxy den PROXY-Kopf an ein Ziel, das ihn nicht erwartet (oder umgekehrt), schlägt jede Verbindung fehl.
+    Mit „Ziel testen“ lässt sich prüfen, was das Ziel annimmt.
+  </div>
+
+  <div class="sides">
+    {% for side, title in [("http", "HTTP (Port 80)"), ("https", "HTTPS (Port 443, TLS wird durchgereicht)")] %}
+    <fieldset class="card side">
+      <legend>{{ title }}</legend>
+      <label for="f-{{ side }}-port">Zielport</label>
+      <input id="f-{{ side }}-port" name="{{ side }}_port" class="mono port" value="{{ v[side ~ '_port'] }}"
+             inputmode="numeric" pattern="[0-9]{1,5}" required>
+      {{ field_error(errors, side ~ "_port") }}
+
+      <fieldset class="proxy-choice">
+        <legend>PROXY-Protokoll</legend>
+        {% for m in ["off", "v1", "v2"] %}
+        <label class="inline"><input type="radio" name="{{ side }}_proxy" value="{{ m }}" {% if v[side ~ '_proxy'] == m %}checked{% endif %}> {{ PROXY_LONG[m] }}</label>
+        {% endfor %}
+        {{ field_error(errors, side ~ "_proxy") }}
+      </fieldset>
+
+      {% if side == "http" %}
+      <label class="inline"><input type="checkbox" name="redirect_to_https" {% if v.redirect_to_https %}checked{% endif %}> HTTP auf HTTPS umleiten</label>
+      {% else %}
+      <label class="inline"><input type="checkbox" name="health_check" {% if v.health_check %}checked{% endif %}> Erreichbarkeit laufend prüfen</label>
+      {% endif %}
+
+      <div class="target-test">
+        {% if service %}
+        <button type="button" class="btn" hx-post="/services/{{ service.id }}/test/{{ side }}"
+                hx-target="#test-{{ side }}" hx-swap="innerHTML" hx-indicator="#ind-{{ side }}"
+                hx-disabled-elt="this">Ziel testen</button>
+        <span id="ind-{{ side }}" class="htmx-indicator">Teste … (bis zu 3 s)</span>
+        <div id="test-{{ side }}" class="test-result" aria-live="polite"></div>
+        {% else %}
+        <p class="hint">„Ziel testen“ ist nach dem ersten Speichern verfügbar.</p>
+        {% endif %}
+      </div>
+    </fieldset>
+    {% endfor %}
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Speichern</button>
+    <a href="/services">Abbrechen</a>
+    <span class="hint">Speichern ändert nur die Datenbank. Wirksam wird es erst über „Änderungen prüfen“.</span>
+  </div>
+</form>
+
+{% if service %}
+<form method="post" action="/services/{{ service.id }}/delete" class="danger-zone"
+      data-confirm="Dienst {{ service.name }} wirklich löschen?">
+  {{ csrf_field() }}
+  <button type="submit" class="btn btn-danger">Dienst löschen</button>
+</form>
+{% endif %}
+{% endblock %}

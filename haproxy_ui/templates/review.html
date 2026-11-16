@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field with context %}
+{% block title %}Änderungen prüfen{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Änderungen prüfen</h1></div>
+
+{% if notes %}
+<section class="card">
+  <h2>Vorgemerkte Änderungen</h2>
+  <ul>{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Prüfungen</h2>
+  <ul class="checks">
+    <li class="{{ 'ok' if not report.errors else 'fail' }}">
+      <span class="mark" aria-hidden="true">{{ '✓' if not report.errors else '✗' }}</span>
+      <strong>Eigene Prüfungen</strong> (Namen, Domains, Domainlisten):
+      {% if not report.errors %}bestanden{% else %}fehlgeschlagen
+      <ul>{% for e in report.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    </li>
+    <li class="{{ 'ok' if report.haproxy_ok else ('fail' if report.haproxy_ok is not none else 'warn') }}">
+      <span class="mark" aria-hidden="true">{{ '✓' if report.haproxy_ok else '✗' }}</span>
+      <strong><span class="mono">haproxy -c</span></strong>:
+      {% if report.haproxy_ok %}bestanden{% elif report.haproxy_ok is none %}nicht ausgeführt{% else %}fehlgeschlagen{% endif %}
+      {% if report.haproxy_output %}<pre class="code-block small">{{ report.haproxy_output }}</pre>{% endif %}
+    </li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>Unterschied zur laufenden Konfiguration</h2>
+  {% set ns = namespace(any=false) %}
+  {% for title, lines in diffs %}
+    {% if lines %}{% set ns.any = true %}
+    <h3>{{ title }}</h3>
+    <pre class="diff">{% for cls, text in lines %}<span class="d-{{ cls }}">{{ text }}</span>
+{% endfor %}</pre>
+    {% endif %}
+  {% endfor %}
+  {% if not ns.any %}<p class="muted">Keine Unterschiede – die erzeugten Dateien entsprechen den laufenden.</p>{% endif %}
+</section>
+
+<section class="card">
+  <form method="post" action="/review/apply" class="apply-form">
+    {{ csrf_field() }}
+    <label for="r-desc">Beschreibung der Änderung (für den Änderungsverlauf)</label>
+    <input id="r-desc" name="description" value="{{ description }}" maxlength="1000">
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" {% if not report.ok %}disabled aria-disabled="true"{% endif %}>Anwenden und neu laden</button>
+      {% if not report.ok %}<span class="hint">Gesperrt, solange eine Prüfung fehlschlägt.</span>{% endif %}
+    </div>
+  </form>
+  <form method="post" action="/review/discard" data-confirm="Alle nicht angewendeten Änderungen verwerfen?">
+    {{ csrf_field() }}
+    <button type="submit" class="btn btn-danger" {% if not has_version %}disabled{% endif %}>Änderungen verwerfen</button>
+    <span class="hint">Setzt die Datenbank auf die zuletzt angewendete Fassung zurück.</span>
+  </form>
+</section>
+{% endblock %}

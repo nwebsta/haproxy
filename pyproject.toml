@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "haproxy-ui"
+version = "0.1.0"
+description = "Weboberfläche für einen einzelnen HAProxy (SNI-/Host-Routing mit PROXY-Protokoll)"
+readme = "README.md"
+requires-python = ">=3.11"
+# Exakte Versionen stehen in requirements.txt
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "sqlalchemy>=2",
+    "argon2-cffi",
+    "python-multipart",
+]
+
+[project.scripts]
+haproxy-ui = "haproxy_ui.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["haproxy_ui*"]
+
+[tool.setuptools.package-data]
+haproxy_ui = ["templates/*.html", "templates_cfg/*.j2", "static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

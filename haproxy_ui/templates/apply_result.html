@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Angewendet' if result.ok else 'Nicht angewendet' }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ 'Angewendet' if result.ok else 'Nicht angewendet' }}</h1></div>
+<div class="alert {{ 'alert-ok' if result.ok else 'alert-error' }}" role="status">{{ result.message }}</div>
+
+{% if result.report and result.report.errors %}
+<section class="card"><h2>Eigene Prüfungen</h2>
+  <ul>{% for e in result.report.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% if result.report and result.report.haproxy_ok is false %}
+<section class="card"><h2>Meldung von <span class="mono">haproxy -c</span></h2>
+  <pre class="code-block small">{{ result.report.haproxy_output }}</pre>
+</section>
+{% endif %}
+{% if result.details %}
+<section class="card"><h2>Ablauf</h2>
+  <pre class="code-block small">{{ result.details|join("\n") }}</pre>
+</section>
+{% endif %}
+{% if result.backup_dir %}
+<p class="muted">Sicherung der vorherigen Dateien: <span class="mono">{{ result.backup_dir }}</span></p>
+{% endif %}
+<p>
+  {% if result.version_id %}<a href="/history/{{ result.version_id }}">Fassung #{{ result.version_id }} ansehen</a> · {% endif %}
+  <a href="/services">Zu den Diensten</a> · <a href="/review">Änderungen prüfen</a>
+</p>
+{% endblock %}

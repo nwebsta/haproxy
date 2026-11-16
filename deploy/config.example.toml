@@ -1,0 +1,25 @@
+# /etc/haproxy-ui/config.toml
+# Alle Schlüssel sind optional; gezeigt sind die Voreinstellungen.
+
+# Adresse der Weboberfläche. Nur lokal lauschen und per SSH-Tunnel zugreifen:
+#   ssh -L 8765:127.0.0.1:8765 root@haproxy-host
+# Die Oberfläche nie über den verwalteten HAProxy selbst veröffentlichen.
+listen_host = "127.0.0.1"
+listen_port = 8765
+
+database    = "/var/lib/haproxy-ui/haproxy-ui.db"
+haproxy_cfg = "/etc/haproxy/haproxy.cfg"
+lists_dir   = "/etc/haproxy"
+backup_dir  = "/etc/haproxy/backup"
+haproxy_bin = "/usr/sbin/haproxy"
+
+reload_cmd    = ["/usr/bin/sudo", "-n", "/usr/bin/systemctl", "reload", "haproxy"]
+is_active_cmd = ["/usr/bin/systemctl", "is-active", "haproxy"]
+
+# Nur auf true setzen, wenn die Oberfläche über HTTPS erreicht wird.
+cookie_secure = false
+session_hours = 8
+
+# Sperre nach wiederholten Fehlversuchen (pro Client-IP)
+max_failed_logins = 5
+lockout_minutes   = 15

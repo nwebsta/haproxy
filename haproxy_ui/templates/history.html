@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf_field with context %}
+{% block title %}Änderungsverlauf{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Änderungsverlauf</h1></div>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>#</th><th>Zeitpunkt</th><th>Beschreibung</th><th></th></tr></thead>
+  <tbody>
+  {% for ver in versions %}
+    <tr>
+      <td class="mono">{{ ver.id }}</td>
+      <td class="mono nowrap">{{ ver.created_at|localtime }}</td>
+      <td>{{ ver.description }}{% if loop.first %} <span class="tag">aktuell</span>{% endif %}</td>
+      <td class="nowrap">
+        <a href="/history/{{ ver.id }}">Ansehen</a>
+        {% if not loop.first %}
+        <form method="post" action="/history/{{ ver.id }}/restore" class="inline-form"
+              data-confirm="Fassung #{{ ver.id }} wiederherstellen und sofort anwenden?">
+          {{ csrf_field() }}
+          <button type="submit" class="btn btn-small">Wiederherstellen</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="muted">Noch keine Fassungen.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
