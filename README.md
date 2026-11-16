@@ -93,6 +93,18 @@ Adresse, Port und Zertifikat stehen in `/etc/haproxy-ui/config.toml`
 (`listen_host`, `listen_port`, `tls_cert`, `tls_key`); nach einer Änderung
 `sudo systemctl restart haproxy-ui`.
 
+**Adresse aus WireGuard o. Ä.:** Gibt es die Adresse beim Start noch nicht, schlägt der Start
+fehl, und systemd versucht es alle 5 Sekunden erneut, ohne aufzugeben. Sobald der Tunnel steht,
+läuft die Oberfläche. Sauberer ist es, den Start an den Tunnel zu koppeln:
+
+```bash
+sudo systemctl edit haproxy-ui
+# einfügen:
+[Unit]
+After=wg-quick@wg0.service
+Wants=wg-quick@wg0.service
+```
+
 Die Oberfläche **nie** über den verwalteten HAProxy veröffentlichen.
 
 ### Update

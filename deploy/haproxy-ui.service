@@ -1,6 +1,9 @@
 [Unit]
 Description=haproxy-ui – Weboberfläche für HAProxy
 After=network.target haproxy.service
+# Nie endgültig aufgeben: Lauscht die Oberfläche auf einer Adresse, die erst später kommt
+# (z. B. WireGuard), schlägt der Start fehl, bis die Adresse da ist.
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -9,7 +12,7 @@ Group=haproxy-ui
 Environment=HAPROXY_UI_CONFIG=/etc/haproxy-ui/config.toml
 ExecStart=/opt/haproxy-ui/venv/bin/haproxy-ui serve
 Restart=on-failure
-RestartSec=3
+RestartSec=5
 UMask=0022
 # Härtung, soweit sie sudo (für "systemctl reload haproxy") nicht behindert
 PrivateTmp=true
