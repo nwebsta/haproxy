@@ -52,6 +52,9 @@ done
 
 [[ $EUID -eq 0 ]] || die "bitte mit sudo bzw. als root ausführen"
 [[ -f "$SRC/pyproject.toml" && -d "$SRC/haproxy_ui" ]] || die "install.sh muss im Projektverzeichnis liegen"
+case "$SRC/" in
+    "$PREFIX"/*) die "den Klon nicht unter $PREFIX ablegen (wird beim Installieren ersetzt) – z. B. nach ~/haproxy-ui oder /tmp/haproxy-ui klonen" ;;
+esac
 [[ -f /etc/debian_version ]] || warn "kein Debian erkannt – fahre trotzdem fort"
 
 UPDATE=0

@@ -23,6 +23,9 @@ cd haproxy-ui
 sudo ./install.sh
 ```
 
+Wohin geklont wird, ist egal (z. B. `~/haproxy-ui` oder `/tmp/haproxy-ui`) – nur nicht unter
+`/opt/haproxy-ui`, denn dorthin installiert das Skript und ersetzt den Inhalt bei jedem Lauf.
+
 Ohne Optionen fragt das Skript bei der Erstinstallation nach Adresse, Port und HTTPS.
 Alles lässt sich auch direkt angeben:
 
